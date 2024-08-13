@@ -1,0 +1,16 @@
+BasedOnStyle: Google    
+AlignAfterOpenBracket: BlockIndent
+AlignArrayOfStructures: Left
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: WebKit
+ColumnLimit: 80
+IndentWidth: 4
+IndentCaseBlocks: false
+NamespaceIndentation: All
+SeparateDefinitionBlocks: Always
+SortIncludes: CaseSensitive
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements 
+SpaceBeforeRangeBasedForLoopColon: true
+Standard: Latest
