@@ -12,8 +12,9 @@ namespace AA {
         std::size_t cursor = 0;
 
        public:
-        Mic() = default;
         Mic(uint8_t pin) : pin(pin) {};
+
+        auto begin() -> void;
 
         auto read(Buffer buffer) -> void;
     };

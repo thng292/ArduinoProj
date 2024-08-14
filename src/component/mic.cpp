@@ -1,7 +1,10 @@
 #include "mic.hpp"
-#include "mic_in.hpp"
+
+#include <Esp.h>
+
 #include <cstdlib>
 
+#include "mic_in.hpp"
 
 auto AA::Mic::read(AA::Buffer buffer) -> void
 {
@@ -10,3 +13,5 @@ auto AA::Mic::read(AA::Buffer buffer) -> void
         cursor = (cursor + 1) % output_wav_len;
     }
 }
+
+auto AA::Mic::begin() -> void { pinMode(this->pin, INPUT); }

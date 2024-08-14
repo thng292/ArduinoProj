@@ -1,6 +1,11 @@
 #include "button.hpp"
-#include <Arduino.h>
+#include <Esp.h>
 #include <cstdint>
+
+auto AA::Button::begin() -> void
+{
+    pinMode(this->pin, INPUT);
+}
 
 auto AA::Button::isPressed() -> bool
 {

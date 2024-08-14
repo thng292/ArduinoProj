@@ -10,7 +10,7 @@
 namespace AA::Pin {
     constexpr uint8_t BUILTIN_LED = 2;
     constexpr uint8_t BUTTON = 32;
-    constexpr uint8_t DTH22 = 13;
+    constexpr uint8_t DHT22 = 13;
     constexpr uint8_t MIC = 27;
     constexpr uint8_t BUZZER = 14;
 
@@ -28,11 +28,11 @@ namespace AA::Pin {
     };
 
     struct DISTANCE_SENS_PINS {
-        uint8_t Trig = 0;
-        uint8_t Echo = 0;
+        uint8_t trig = 0;
+        uint8_t echo = 0;
 
         constexpr DISTANCE_SENS_PINS(uint8_t Trig, uint8_t Echo)
-            : Trig(Trig), Echo(Echo)
+            : trig(Trig), echo(Echo)
         {
         }
     };

@@ -1,8 +1,13 @@
 #pragma once
+#include <Esp.h>
 #include <NTPClient.h>
+#include <WiFi.h>
+
+#include <string_view>
 
 #include "DHT.h"
 #include "HX711.h"
+#include "PubSubClient.h"
 #include "component/water_level_sensor.hpp"
 
 namespace AA {
@@ -23,4 +28,10 @@ namespace AA {
         HX711& water_scale,
         WaterLevelSensor& water_level_sens
     ) -> SensorsState;
+
+    auto connectWifi(std::string_view WIFI_SSID, std::string_view WIFI_PSWD)
+        -> void;
+
+    auto mqtt_reconnect(PubSubClient& mqtt_client, std::string_view DEV_ID)
+        -> void;
 }  // namespace AA

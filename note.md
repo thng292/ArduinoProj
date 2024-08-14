@@ -70,6 +70,11 @@
 }
 ```
 
+#### get_dev_info
+- direction: server -> client
+- topic: get_dev_info
+- payload: 1
+
 #### time_eat
 - direction: client -> server
 - topic: time_eat
