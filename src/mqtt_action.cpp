@@ -66,7 +66,7 @@ auto AA::MQTT_ACTION::dev_info(PubSubClient& mqtt_client) -> void
 
 auto AA::MQTT_ACTION::time_eat(PubSubClient& mqtt_client, unsigned long time_eat_ms) -> void
 {
-    auto len = snprintf(buffer.get(), buffer_size, "%llu", time_eat_ms);
+    auto len = snprintf(buffer.get(), buffer_size, "%lu", time_eat_ms);
     mqtt_client.publish("time_eat", buffer.get());
 }
 
@@ -75,4 +75,12 @@ auto AA::MQTT_ACTION::push_log(
 ) -> void
 {
     mqtt_client.publish("log", log.c_str());
+}
+
+auto AA::MQTT_ACTION::water_added(
+    PubSubClient& mqtt_client, unsigned long gram_water_added
+) -> void
+{
+    auto len = snprintf(buffer.get(), buffer_size, "%lu", gram_water_added);
+    mqtt_client.publish("water_added", buffer.get());
 }

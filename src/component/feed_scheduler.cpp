@@ -1,5 +1,9 @@
 #include "feed_scheduler.hpp"
 
+#include <algorithm>
+#include <charconv>
+#include <stack>
+
 auto AA::FeedScheduler::begin() -> void
 {
     this->last_water_scale_value = this->water_scale->get_units();
@@ -57,8 +61,7 @@ auto AA::FeedScheduler::loop() -> void
 {
     checkAndAddWater();
     checkAndAddFood();
-    auto now = Time
-    {
+    auto now = Time{
         .hour = this->ntp_client->getHours(),
         .minute = this->ntp_client->getMinutes(),
     };
@@ -102,4 +105,86 @@ auto AA::FeedScheduler::loop() -> void
 auto AA::FeedScheduler::shouldBeEating() const noexcept -> bool
 {
     return (this->endEating.hour != 0 and this->endEating.minute != 0);
+}
+
+auto AA::FeedScheduler::parseAndWriteSchedule(const std::string& data) -> void
+{
+    constexpr auto assign =
+        [](Schedule& sched, uint8_t stage, const char* first, const char* last
+        ) -> boolean {
+        auto res = std::from_chars_result{};
+        switch (stage) {
+            case 0:
+                res = std::from_chars(first, last, sched.time.hour);
+                break;
+            case 1:
+                res = std::from_chars(first, last, sched.time.minute);
+                break;
+            case 2:
+                sched.audio_url = std::string(first, last);
+                res.ptr = last;
+                break;
+            case 3:
+                res = std::from_chars(first, last, sched.amount_gram);
+                break;
+            case 4:
+                res = std::from_chars(first, last, sched.duration_m);
+                break;
+            default:
+                res.ptr = first;
+                break;
+        }
+
+        return res.ptr == last;
+    };
+
+    bool open_brack = false;
+    size_t start_i = 0;
+    uint8_t stage = 5;
+
+    auto tmp = Schedule{};
+    auto tmp_schedues = std::vector<Schedule>();
+
+    for (int i = 0; i < data.size(); i++) {
+        switch (data[i]) {
+            case '{':
+                if (open_brack or stage != 5) {
+                    return;
+                }
+                open_brack = true;
+                start_i = ++i;
+                stage = 0;
+                break;
+            case '}':
+                if (open_brack and stage == 4) {
+                    assign(tmp, stage, data.data() + start_i, data.data() + i);
+                    start_i = i + 1;
+                    stage += 1;
+                    tmp_schedues.push_back(tmp);
+                    open_brack = false;
+                } else {
+                    return;
+                }
+                break;
+            case ' ':
+                if (not open_brack) {
+                    return;
+                }
+                assign(tmp, stage, data.data() + start_i, data.data() + i);
+                start_i = i + 1;
+                stage += 1;
+                break;
+        }
+    }
+
+    this->schedules = tmp_schedues;
+    // Serial.println(tmp_schedues.size());
+    // for (const auto& sched : tmp_schedues) {
+    //     Serial.println(sched.time.hour);
+    //     Serial.println(sched.time.minute);
+    //     Serial.println(sched.amount_gram);
+    //     Serial.println(sched.duration_m);
+    //     Serial.println(sched.audio_url.c_str());
+    //     Serial.println();
+    // }
 }

@@ -1,8 +1,8 @@
 #include <DHT.h>
 #include <ESP32Servo.h>
 #include <Esp.h>
-#include <HTTPClient.h>
 #include <HX711.h>
+#include <NTPClient.h>
 #include <PubSubClient.h>
 #include <WiFi.h>
 
@@ -29,8 +29,8 @@ namespace AA {
 
 auto wifi_client = WiFiClient();
 auto mqtt_client = PubSubClient(wifi_client);
-auto http_client = HTTPClient();
-auto ntp_client = AA::constructNTPClient();
+auto wifi_udp = WiFiUDP();
+auto ntp_client = NTPClient(wifi_udp);
 
 auto butt = AA::Button(AA::Pin::BUTTON);
 auto dht = DHT(AA::Pin::DHT22, DHT22);
@@ -51,7 +51,8 @@ auto feed_scheduler = AA::FeedScheduler(
     &water_level_sens
 );
 
-unsigned long start_eat_time = 0;
+unsigned long last_eat_time = 0;
+unsigned long eat_time = 0;
 
 auto setup() -> void
 {
@@ -72,13 +73,13 @@ auto setup() -> void
     Speaker.attach(AA::Pin::BUZZER);
     feed_scheduler.begin();
     feed_scheduler.onAddWater = [](float water_added_gram) {
-        AA::MQTT_ACTION::water_add(mqtt_client, water_added_gram);
+        AA::MQTT_ACTION::water_added(
+            mqtt_client, (unsigned long)water_added_gram
+        );
     };
-    feed_scheduler.onStartEating = [](auto _) {
-        start_eat_time = millis();
-    };
+    feed_scheduler.onStartEating = [](auto _) {};
     feed_scheduler.onEndEating = [](auto _) {
-        AA::MQTT_ACTION::time_eat(mqtt_client, millis() - start_eat_time);
+        AA::MQTT_ACTION::time_eat(mqtt_client, eat_time);
     };
 
     pinMode(AA::Pin::BUILTIN_LED, OUTPUT);
@@ -93,9 +94,14 @@ auto setup() -> void
 auto loop() -> void
 {
     if (not mqtt_client.loop()) {
-        Serial.println(LOG_PREFIX "mqtt_client.loop() return false");
+        // Serial.println(LOG_PREFIX "mqtt_client.loop() return false");
     }
     camera.loop();
     Speaker.loop();
     feed_scheduler.loop();
+    if (feed_scheduler.shouldBeEating() and camera.isPetIn()) {
+        auto now = millis();
+        eat_time += now - last_eat_time;
+        last_eat_time = now;
+    }
 }

@@ -104,7 +104,7 @@ constexpr auto array_of(T&&... t) -> std::array<V, sizeof...(T)>
 }
 
 // clang-format off
-constexpr auto melody = array_of<uint16_t>(
+constexpr auto melody = array_of<int>(
   NOTE_E5, 4,  NOTE_B4,8,  NOTE_C5,8,  NOTE_D5,4,  NOTE_C5,8,  NOTE_B4,8,
   NOTE_A4, 4,  NOTE_A4,8,  NOTE_C5,8,  NOTE_E5,4,  NOTE_D5,8,  NOTE_C5,8,
   NOTE_B4, -4,  NOTE_C5,8,  NOTE_D5,4,  NOTE_E5,4,
@@ -143,6 +143,10 @@ constexpr int wholenote = (60000 * 4) / tempo;
 
 auto AA::SpeakerClass::playNote() -> void
 {
+    if (this->idx >= melody.size()) {
+        this->is_playing = false;
+        return;
+    }
     auto divider = melody[this->idx + 1];
     if (divider > 0) {
         // regular note, just proceed
@@ -150,8 +154,7 @@ auto AA::SpeakerClass::playNote() -> void
     } else if (divider < 0) {
         // dotted notes are represented with negative durations!!
         this->duration = (wholenote) / abs(divider);
-        this->duration *=
-            1.5;  // increases the duration in half for dotted notes
+        this->duration *= 1.5;  // increases the duration in half for dotted notes
     }
 
     // we only play the note for 90% of the duration, leaving 10% as a pause
@@ -168,7 +171,7 @@ auto AA::SpeakerClass::play() -> void
 
 auto AA::SpeakerClass::loop() -> void
 {
-    if (millis() - this->last_time >= duration) {
+    if (millis() - this->last_time >= duration and is_playing) {
         playNote();
     }
 }

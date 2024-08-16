@@ -69,11 +69,6 @@ namespace AA {
               water_scale(water_scale),
               water_level_sensor(water_level_sensor)
         {
-            assert(
-                ntp_client == nullptr or water_level_sensor == nullptr or
-                food_servo == nullptr or food_scale == nullptr or
-                water_servo == nullptr or water_scale == nullptr
-            );
         }
 
         auto begin() -> void;
@@ -84,6 +79,6 @@ namespace AA {
 
         [[nodiscard]] auto shouldBeEating() const noexcept -> bool;
 
-        auto parseAndAddSchedule(const std::string& data) -> void;
+        auto parseAndWriteSchedule(const std::string& data) -> void;
     };
 };  // namespace AA

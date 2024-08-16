@@ -1,6 +1,5 @@
 #pragma once
 #include <Esp.h>
-#include <NTPClient.h>
 #include <WiFi.h>
 
 #include <string_view>
@@ -24,9 +23,6 @@ namespace AA {
         float water = 0;
         float bowl_water_level = 0;
     };
-
-    // Only call after get wifi
-    auto constructNTPClient() -> NTPClient;
 
     auto updateSensorsState(
         DHT& dht,

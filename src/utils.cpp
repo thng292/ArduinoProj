@@ -2,13 +2,6 @@
 
 #include <WiFiUdp.h>
 
-auto AA::constructNTPClient() -> NTPClient
-{
-    auto wifi_udp = WiFiUDP();
-    auto ntp_client = NTPClient(wifi_udp);
-    return ntp_client;
-}
-
 auto AA::updateSensorsState(
     DHT& dht,
     HX711& food_scale,

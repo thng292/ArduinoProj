@@ -16,6 +16,6 @@ namespace AA {
 
         auto begin() -> void;
 
-        auto read(Buffer buffer) -> void;
+        auto read() -> uint16_t;
     };
 }  // namespace AA
