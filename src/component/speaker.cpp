@@ -2,7 +2,7 @@
 
 #include <Esp.h>
 
-#include <array>
+#include "utils.hpp"
 
 AA::SpeakerClass Speaker;
 
@@ -97,12 +97,6 @@ AA::SpeakerClass Speaker;
 #define NOTE_DS8 4978
 #define REST 0
 
-template <typename V, typename... T>
-constexpr auto array_of(T&&... t) -> std::array<V, sizeof...(T)>
-{
-    return {{std::forward<T>(t)...}};
-}
-
 // clang-format off
 constexpr auto melody = array_of<int>(
   NOTE_E5, 4,  NOTE_B4,8,  NOTE_C5,8,  NOTE_D5,4,  NOTE_C5,8,  NOTE_B4,8,
@@ -154,7 +148,8 @@ auto AA::SpeakerClass::playNote() -> void
     } else if (divider < 0) {
         // dotted notes are represented with negative durations!!
         this->duration = (wholenote) / abs(divider);
-        this->duration *= 1.5;  // increases the duration in half for dotted notes
+        this->duration *=
+            1.5;  // increases the duration in half for dotted notes
     }
 
     // we only play the note for 90% of the duration, leaving 10% as a pause
@@ -174,4 +169,10 @@ auto AA::SpeakerClass::loop() -> void
     if (millis() - this->last_time >= duration and is_playing) {
         playNote();
     }
+}
+
+auto AA::SpeakerClass::attach(uint8_t pin) -> void
+{
+    this->pin = pin;
+    pinMode(pin, OUTPUT);
 }

@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <charconv>
-#include <stack>
+
+#include "mqtt_action.hpp"
+#include "speaker.hpp"
 
 auto AA::FeedScheduler::begin() -> void
 {
@@ -22,10 +24,12 @@ auto AA::FeedScheduler::checkAndAddWater() -> void
                 (new_water_scale_value - this->last_water_scale_value) *
                 kg_to_gram
             );
+            MQTT_ACTION::push_log(*(this->mqtt_client), "Done adding water!");
         }
     } else {
         if (water_level <= lo_threshold) {
             this->water_servo->write(30);
+            MQTT_ACTION::push_log(*(this->mqtt_client), "Adding water!");
             this->adding_water = true;
         } else {
             this->last_water_scale_value = this->water_scale->get_units();
@@ -80,6 +84,7 @@ auto AA::FeedScheduler::loop() -> void
                 if (not this->done_flag[i]) {
                     this->done_flag[i] = true;
                     this->feed((float)sched.amount_gram / kg_to_gram);
+                    MQTT_ACTION::push_log(*(this->mqtt_client), "Feeding pet!");
                     this->onStartEating(now);
                     auto min =
                         this->ntp_client->getMinutes() + sched.duration_m;
@@ -94,7 +99,7 @@ auto AA::FeedScheduler::loop() -> void
                         this->endEating.minute =
                             std::max(min, this->endEating.minute);
                     }
-                    // FIXME: Play audio here
+                    Speaker.play();
                 }
             }
             this->done_flag[i] = false;

@@ -2,6 +2,7 @@
 #include <ESP32Servo.h>
 #include <HX711.h>
 #include <NTPClient.h>
+#include <PubSubClient.h>
 
 #include <functional>
 #include <vector>
@@ -29,6 +30,7 @@ namespace AA {
         HX711* food_scale;
         HX711* water_scale;
         WaterLevelSensor* water_level_sensor;
+        PubSubClient* mqtt_client;
 
         std::vector<Schedule> schedules;
         std::vector<bool> done_flag;
@@ -60,14 +62,16 @@ namespace AA {
             HX711* food_scale,
             Servo* water_servo,
             HX711* water_scale,
-            WaterLevelSensor* water_level_sensor
+            WaterLevelSensor* water_level_sensor,
+            PubSubClient* mqtt_client
         )
             : ntp_client(ntp_client),
               food_servo(food_servo),
               food_scale(food_scale),
               water_servo(water_servo),
               water_scale(water_scale),
-              water_level_sensor(water_level_sensor)
+              water_level_sensor(water_level_sensor),
+              mqtt_client(mqtt_client)
         {
         }
 

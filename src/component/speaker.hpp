@@ -11,7 +11,7 @@ namespace AA {
         auto playNote() -> void;
 
        public:
-        auto attach(uint8_t pin) -> void { this->pin = pin; }
+        auto attach(uint8_t pin) -> void;
 
         auto loop() -> void;
 

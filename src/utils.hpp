@@ -15,6 +15,12 @@
 
 #define LOG_PREFIX __FILE__ ":" LINE_STRING ", "
 
+template <typename V, typename... T>
+constexpr auto array_of(T&&... t) -> std::array<V, sizeof...(T)>
+{
+    return {{std::forward<T>(t)...}};
+}
+
 namespace AA {
     struct SensorsState {
         float temp = 0;

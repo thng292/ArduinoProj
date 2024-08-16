@@ -48,7 +48,8 @@ auto feed_scheduler = AA::FeedScheduler(
     &food_scale,
     &water_servo,
     &water_scale,
-    &water_level_sens
+    &water_level_sens,
+    &mqtt_client
 );
 
 unsigned long last_eat_time = 0;
@@ -59,6 +60,7 @@ auto setup() -> void
     Serial.begin(9600);
     AA::connectWifi(AA::WIFI_SSID, AA::WIFI_PSWD);
     mqtt_client.setServer(AA::MQTT_BROKER_ADDR.data(), AA::MQTT_BROKER_PORT);
+    AA::mqtt_reconnect(mqtt_client, AA::DEV_ID);
     ntp_client.begin();
 
     dht.begin();
@@ -72,6 +74,7 @@ auto setup() -> void
     camera.begin();
     Speaker.attach(AA::Pin::BUZZER);
     feed_scheduler.begin();
+
     feed_scheduler.onAddWater = [](float water_added_gram) {
         AA::MQTT_ACTION::water_added(
             mqtt_client, (unsigned long)water_added_gram
@@ -82,26 +85,63 @@ auto setup() -> void
         AA::MQTT_ACTION::time_eat(mqtt_client, eat_time);
     };
 
-    pinMode(AA::Pin::BUILTIN_LED, OUTPUT);
-    pinMode(AA::Pin::BUZZER, OUTPUT);
-    for (auto pin : AA::Pin::SERVO) {
-        pinMode(pin, INPUT);
+    auto list = (const std::string_view*)&AA::MQTT_ACTION::TOPICS;
+    for (uint8_t i = 0; i < AA::MQTT_ACTION::NUM_SUBSCRIBE_TOPICS; i++) {
+        mqtt_client.subscribe(list[i].data());
     }
+    mqtt_client.setCallback(  //
+        [](char* topic, uint8_t* data, unsigned int length) {
+            Serial.println("-----------------");
+            Serial.printf("Topic: %s", topic);
+            Serial.println();
+            data[length] = 0;
+            Serial.printf("Data: %s", data);
+            Serial.println();
+            Serial.println("-----------------");
+            const auto& Topic = AA::MQTT_ACTION::TOPICS;
+            auto topic_str = std::string(topic);
+            if (topic_str == Topic.get_dev_info) {
+                AA::MQTT_ACTION::dev_info(mqtt_client);
+            }
+            if (topic_str == Topic.feed_now) {
+                feed_scheduler.feed(15.0f / 1000);
+            }
+            if (topic_str == Topic.restart) {
+                ESP.restart();
+            }
+            if (topic_str == Topic.write_feed_time) {
+                auto data_str = std::string(data, data + length);
+                feed_scheduler.parseAndWriteSchedule(data_str);
+            }
+        }
+    );
 
     AA::MQTT_ACTION::push_log(mqtt_client, LOG_PREFIX "Everything is ok");
 }
 
 auto loop() -> void
 {
+    AA::mqtt_reconnect(mqtt_client, AA::DEV_ID);
     if (not mqtt_client.loop()) {
-        // Serial.println(LOG_PREFIX "mqtt_client.loop() return false");
+        Serial.println(LOG_PREFIX "mqtt_client.loop() return false");
     }
     camera.loop();
     Speaker.loop();
     feed_scheduler.loop();
+    if (butt.isPressed()) {
+        feed_scheduler.feed(15.0f / 1000);
+    }
     if (feed_scheduler.shouldBeEating() and camera.isPetIn()) {
         auto now = millis();
         eat_time += now - last_eat_time;
         last_eat_time = now;
+    }
+    if (ntp_client.getSeconds() == 0) {
+        AA::MQTT_ACTION::sensor_state(
+            mqtt_client,
+            AA::updateSensorsState(
+                dht, food_scale, water_scale, water_level_sens
+            )
+        );
     }
 }
