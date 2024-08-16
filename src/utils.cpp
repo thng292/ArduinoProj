@@ -2,11 +2,10 @@
 
 #include <WiFiUdp.h>
 
-auto AA::syncWithNTPServer() -> NTPClient
+auto AA::constructNTPClient() -> NTPClient
 {
     auto wifi_udp = WiFiUDP();
     auto ntp_client = NTPClient(wifi_udp);
-    ntp_client.begin();
     return ntp_client;
 }
 

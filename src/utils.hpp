@@ -26,7 +26,7 @@ namespace AA {
     };
 
     // Only call after get wifi
-    auto syncWithNTPServer() -> NTPClient;
+    auto constructNTPClient() -> NTPClient;
 
     auto updateSensorsState(
         DHT& dht,

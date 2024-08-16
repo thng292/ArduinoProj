@@ -14,7 +14,7 @@ auto AA::FeedScheduler::checkAndAddWater() -> void
             this->adding_water = false;
             auto new_water_scale_value = this->water_scale->get_units();
             constexpr uint32_t kg_to_gram = 1000;
-            this->on_add_water(
+            this->onAddWater(
                 (new_water_scale_value - this->last_water_scale_value) *
                 kg_to_gram
             );

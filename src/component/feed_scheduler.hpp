@@ -48,7 +48,7 @@ namespace AA {
 
        public:
         // callback: auto cb(float water_added_gram) -> void
-        std::function<void(float)> on_add_water;
+        std::function<void(float)> onAddWater;
 
         // callback: auto cb(FeedScheduler::Time current_time) -> void
         std::function<void(Time)> onStartEating;
