@@ -1,13 +1,24 @@
 #pragma once
+#include <Esp.h>
 
-class WaterLevelSensor {
-    float level = 0;
+#include <cstdint>
 
-   public:
-    auto read() -> float
-    {
-        auto res = level;
-        level -= 5;
-        return res;
-    }
-};
+namespace AA {
+    class WaterLevelSensor {
+        uint8_t pin = 0;
+        constexpr static uint16_t ESP_ANALOG_RES = 4095;
+
+       public:
+        WaterLevelSensor(uint8_t pin) : pin(pin) {}
+
+        auto begin() -> void
+        {
+            pinMode(this->pin, INPUT);
+        }
+
+        [[nodiscard]] auto read() const noexcept -> float
+        {
+            return (float)analogRead(this->pin) / ESP_ANALOG_RES;
+        }
+    };
+}  // namespace AA

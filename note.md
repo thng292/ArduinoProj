@@ -80,6 +80,11 @@
 - topic: time_eat
 - payload: number, time eat in second
 
+#### water_added
+- direction: client -> server
+- topic: water_added
+- payload: number, gram water added
+
 #### call
 - direction: server -> client
 - topic: call

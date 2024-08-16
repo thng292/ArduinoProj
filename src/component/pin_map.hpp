@@ -40,5 +40,7 @@ namespace AA::Pin {
     constexpr auto DISTANCE_SENS = AA::Pin::DISTANCE_SENS_PINS(26, 25);
 
     constexpr uint8_t SDCARD = 5;
+
+    constexpr uint8_t WATER_LEVEL_SENSOR = 35;
 }  // namespace AA::Pin
 ;  // namespace AA

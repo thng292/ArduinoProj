@@ -1,19 +1,19 @@
+#include <DHT.h>
 #include <ESP32Servo.h>
 #include <Esp.h>
 #include <HTTPClient.h>
+#include <HX711.h>
 #include <PubSubClient.h>
 #include <WiFi.h>
 
 #include <string_view>
 
-#include "DHT.h"
-#include "HX711.h"
 #include "component/button.hpp"
 #include "component/camera.hpp"
 #include "component/mic.hpp"
 #include "component/pin_map.hpp"
+#include "component/speaker.hpp"
 #include "component/water_level_sensor.hpp"
-#include "esp32-hal-gpio.h"
 #include "mqtt_action.hpp"
 #include "utils.hpp"
 
@@ -24,7 +24,6 @@ namespace AA {
     constexpr auto MQTT_BROKER_ADDR = "192.168.1.9"sv;
     constexpr uint16_t MQTT_BROKER_PORT = 1883;
     constexpr auto DEV_ID = "idkwhattosethere"sv;
-
 };  // namespace AA
 
 auto wifi_client = WiFiClient();
@@ -37,7 +36,7 @@ auto food_scale = HX711();
 auto water_scale = HX711();
 auto food_servo = Servo();
 auto water_servo = Servo();
-auto water_level_sens = WaterLevelSensor();
+auto water_level_sens = AA::WaterLevelSensor(AA::Pin::WATER_LEVEL_SENSOR);
 auto camera = AA::Camera(AA::Pin::DISTANCE_SENS);
 auto mic = AA::Mic(AA::Pin::MIC);
 
@@ -56,6 +55,7 @@ auto setup() -> void
     butt.begin();
     mic.begin();
     camera.begin();
+    Speaker.attach(AA::Pin::BUZZER);
 
     pinMode(AA::Pin::BUILTIN_LED, OUTPUT);
     pinMode(AA::Pin::BUZZER, OUTPUT);
@@ -63,16 +63,16 @@ auto setup() -> void
         pinMode(pin, INPUT);
     }
 
-    AA::MQTT_ACTION::push_log(mqtt_client, "Setup: Everything is ok");
+    AA::MQTT_ACTION::push_log(mqtt_client,  LOG_PREFIX "Everything is ok");
 }
 
 auto loop() -> void
 {
+    mqtt_client.loop();
+    camera.loop();
     if (butt.isPressed()) {
         Serial.println("Button Pressed");
         AA::mqtt_reconnect(mqtt_client, AA::DEV_ID);
-        mqtt_client.loop();
-        camera.loop();
         auto sens_state = AA::updateSensorsState(
             dht, food_scale, water_scale, water_level_sens
         );

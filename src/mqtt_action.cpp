@@ -43,6 +43,7 @@ auto AA::MQTT_ACTION::dev_info(PubSubClient& mqtt_client) -> void
         buffer.get(),
         buffer_size,
         "{\"software\": %s,"
+        "\"up_time\": %lu,"
         "\"chip\": %s,"
         "\"chip_revision\": %d,"
         "\"core\": %d,"
@@ -51,6 +52,7 @@ auto AA::MQTT_ACTION::dev_info(PubSubClient& mqtt_client) -> void
         "\"ip\": %s,"
         "\"wifi\": %s, }",
         "1.0.0",
+        millis(),
         ESP.getChipModel(),
         ESP.getChipRevision(),
         ESP.getChipCores(),

@@ -33,5 +33,10 @@ namespace AA {
         auto loop() -> void;
 
         auto isPetIn() const noexcept -> bool;
+
+        auto get_distance() const noexcept -> float
+        {
+            return this->last_distance;
+        }
     };
 }  // namespace AA

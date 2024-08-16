@@ -10,6 +10,12 @@
 #include "PubSubClient.h"
 #include "component/water_level_sensor.hpp"
 
+#define STRINGIZE(x) STRINGIZE2(x)
+#define STRINGIZE2(x) #x
+#define LINE_STRING STRINGIZE(__LINE__)
+
+#define LOG_PREFIX __FILE__ ":" LINE_STRING ", "
+
 namespace AA {
     struct SensorsState {
         float temp = 0;

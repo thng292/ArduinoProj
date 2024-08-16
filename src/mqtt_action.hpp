@@ -16,5 +16,7 @@ namespace AA::MQTT_ACTION {
 
     auto time_eat(PubSubClient& mqtt_client, unsigned long time_eat_ms) -> void;
 
+    auto water_add(PubSubClient& mqtt_client, unsigned long gram_water_added) -> void;
+
     auto push_log(PubSubClient& mqtt_client, const std::string& log) -> void;
 }  // namespace AA::MQTT_ACTION
