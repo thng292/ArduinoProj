@@ -83,6 +83,7 @@ auto setup() -> void
     feed_scheduler.onStartEating = [](auto _) {};
     feed_scheduler.onEndEating = [](auto _) {
         AA::MQTT_ACTION::time_eat(mqtt_client, eat_time);
+        AA::MQTT_ACTION::add_video(mqtt_client, camera.recordAndUpload());
     };
 
     auto list = (const std::string_view*)&AA::MQTT_ACTION::TOPICS;

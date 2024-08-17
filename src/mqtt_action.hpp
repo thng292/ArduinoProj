@@ -9,11 +9,11 @@ namespace AA::MQTT_ACTION {
     using sv = std::string_view;
 
     constexpr struct {
-        sv write_feed_time = "write_feed_time";
-        sv feed_now = "feed_now";
-        sv restart = "restart";
-        sv get_dev_info = "get_dev_info";
-        sv call = "call";
+        sv write_feed_time = "write_feed_time"; //
+        sv feed_now = "feed_now"; //
+        sv restart = "restart"; //
+        sv get_dev_info = "get_dev_info"; //
+        sv call = "call"; //
         sv sensor_state = "sensor_state"; //
         sv add_image = "add_image"; //
         sv add_video = "add_video"; //

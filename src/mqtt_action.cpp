@@ -36,11 +36,11 @@ auto AA::MQTT_ACTION::add_image(
 }
 
 auto AA::MQTT_ACTION::add_video(
-    PubSubClient& mqtt_client, const std::string& image_link
+    PubSubClient& mqtt_client, const std::string& video_link
 ) -> void
 {
     Serial.println("Publishing add_video");
-    mqtt_client.publish(TOPICS.add_video.data(), image_link.c_str());
+    mqtt_client.publish(TOPICS.add_video.data(), video_link.c_str());
 }
 
 auto AA::MQTT_ACTION::dev_info(PubSubClient& mqtt_client) -> void
