@@ -1,3 +1,6 @@
 [submodule "VL_DO_AN"]
 	path = VL_DO_AN
 	url = https://github.com/nhatphuoc/VL_DO_AN.git
+[submodule "pet-feeder"]
+	path = pet-feeder
+	url = https://github.com/LegendAVRS/pet-feeder.git
