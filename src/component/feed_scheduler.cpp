@@ -16,7 +16,7 @@ auto AA::FeedScheduler::checkAndAddWater() -> void
     auto water_level = this->water_level_sensor->read();
     if (this->adding_water) {
         if (water_level >= hi_threshold) {
-            this->water_servo->write(0);
+            this->water_servo->write(90);
             this->adding_water = false;
             auto new_water_scale_value = this->water_scale->get_units();
             constexpr uint32_t kg_to_gram = 1000;
@@ -41,8 +41,8 @@ auto AA::FeedScheduler::checkAndAddFood() -> void
 {
     if (this->adding_food) {
         auto food_weight = this->food_scale->get_units();
-        if (food_weight - last_food_scale_value <= amount_to_feed_kg) {
-            this->food_servo->write(0);
+        if (last_food_scale_value - food_weight >= amount_to_feed_kg) {
+            this->food_servo->write(90);
             this->adding_food = false;
             this->amount_to_feed_kg = 0;
         }

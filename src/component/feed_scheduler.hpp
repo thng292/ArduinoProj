@@ -40,7 +40,7 @@ namespace AA {
         float amount_to_feed_kg = 0;
         float last_water_scale_value = 0;
         float last_food_scale_value = 0;
-        Time endEating;
+        Time endEating = {-1, -1};
 
         constexpr static float hi_threshold = 0.8;
         constexpr static float lo_threshold = 0.5;

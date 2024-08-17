@@ -52,6 +52,7 @@ auto feed_scheduler = AA::FeedScheduler(
     &mqtt_client
 );
 
+constexpr auto amount_to_feed = 15.0f / 1000;
 unsigned long last_eat_time = 0;
 unsigned long eat_time = 0;
 
@@ -62,6 +63,7 @@ auto setup() -> void
     mqtt_client.setServer(AA::MQTT_BROKER_ADDR.data(), AA::MQTT_BROKER_PORT);
     AA::mqtt_reconnect(mqtt_client, AA::DEV_ID);
     ntp_client.begin();
+    ntp_client.forceUpdate();
 
     dht.begin();
     food_scale.begin(AA::Pin::SCALE[0].DT, AA::Pin::SCALE[0].SCK);
@@ -86,7 +88,7 @@ auto setup() -> void
         AA::MQTT_ACTION::add_video(mqtt_client, camera.recordAndUpload());
     };
 
-    auto list = (const std::string_view*)&AA::MQTT_ACTION::TOPICS;
+    const auto *list = (const std::string_view*)&AA::MQTT_ACTION::TOPICS;
     for (uint8_t i = 0; i < AA::MQTT_ACTION::NUM_SUBSCRIBE_TOPICS; i++) {
         mqtt_client.subscribe(list[i].data());
     }
@@ -105,7 +107,7 @@ auto setup() -> void
                 AA::MQTT_ACTION::dev_info(mqtt_client);
             }
             if (topic_str == Topic.feed_now) {
-                feed_scheduler.feed(15.0f / 1000);
+                feed_scheduler.feed(amount_to_feed);
             }
             if (topic_str == Topic.restart) {
                 ESP.restart();
@@ -126,11 +128,13 @@ auto loop() -> void
     if (not mqtt_client.loop()) {
         Serial.println(LOG_PREFIX "mqtt_client.loop() return false");
     }
+    ntp_client.update();
     camera.loop();
     Speaker.loop();
     feed_scheduler.loop();
     if (butt.isPressed()) {
-        feed_scheduler.feed(15.0f / 1000);
+        Serial.println("Button pressed! Feeding!");
+        feed_scheduler.feed(amount_to_feed);
     }
     if (feed_scheduler.shouldBeEating() and camera.isPetIn()) {
         auto now = millis();
