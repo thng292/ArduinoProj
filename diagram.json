@@ -45,7 +45,6 @@
       "attrs": { "value": "1000" }
     },
     { "type": "wokwi-hc-sr04", "id": "ultrasonic1", "top": -612.9, "left": 360.7, "attrs": {} },
-    { "type": "wokwi-microsd-card", "id": "sd1", "top": -662.17, "left": 988.87, "attrs": {} },
     {
       "type": "wokwi-slide-potentiometer",
       "id": "pot1",
@@ -103,16 +102,10 @@
     [ "ultrasonic1:TRIG", "esp:D26", "green", [ "v48", "h374" ] ],
     [ "ultrasonic1:ECHO", "esp:D25", "green", [ "v38.4", "h536.8" ] ],
     [ "btn1:2.r", "esp:D32", "green", [ "h8.8", "v9.8" ] ],
-    [ "sd1:GND", "esp:GND.1", "black", [ "h105.6", "v220.91" ] ],
-    [ "sd1:VCC", "esp:3V3", "red", [ "h115.2", "v0.14" ] ],
-    [ "sd1:DO", "esp:D19", "green", [ "h96", "v144.11" ] ],
-    [ "sd1:SCK", "esp:D18", "green", [ "h86.4", "v134.39" ] ],
-    [ "sd1:DI", "esp:D23", "green", [ "h67.2", "v57.41" ] ],
     [ "cell3:VCC", "bb1:bp.45", "red", [ "h-19.2", "v-105.6" ] ],
     [ "cell3:GND", "bb1:bp.42", "black", [ "h0" ] ],
     [ "cell3:DT", "bb1:53b.g", "green", [ "h0" ] ],
     [ "cell3:SCK", "bb1:54b.h", "green", [ "h0" ] ],
-    [ "sd1:CS", "esp:D5", "green", [ "h76.8", "v115.26" ] ],
     [ "pot1:VCC", "bb1:tp.41", "red", [ "h0" ] ],
     [ "pot1:SIG", "esp:D35", "green", [ "h-115.2", "v76", "h345.6", "v38.4" ] ]
   ],

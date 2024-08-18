@@ -14,11 +14,11 @@ auto AA::FeedScheduler::begin() -> void
 auto AA::FeedScheduler::checkAndAddWater() -> void
 {
     auto water_level = this->water_level_sensor->read();
+    auto new_water_scale_value = this->water_scale->get_units();
     if (this->adding_water) {
         if (water_level >= hi_threshold) {
             this->water_servo->write(90);
             this->adding_water = false;
-            auto new_water_scale_value = this->water_scale->get_units();
             constexpr uint32_t kg_to_gram = 1000;
             this->onAddWater(
                 (new_water_scale_value - this->last_water_scale_value) *
@@ -26,8 +26,21 @@ auto AA::FeedScheduler::checkAndAddWater() -> void
             );
             MQTT_ACTION::push_log(*(this->mqtt_client), "Done adding water!");
         }
+        if (new_water_scale_value == 0) {
+            MQTT_ACTION::push_log(*(this->mqtt_client), "No water left!");
+            this->water_servo->write(90);
+            constexpr uint32_t kg_to_gram = 1000;
+            this->onAddWater(
+                (new_water_scale_value - this->last_water_scale_value) *
+                kg_to_gram
+            );
+            this->adding_water = false;
+        }
     } else {
         if (water_level <= lo_threshold) {
+            if (new_water_scale_value == 0) {
+                MQTT_ACTION::push_log(*(this->mqtt_client), "No water left!");
+            }
             this->water_servo->write(30);
             MQTT_ACTION::push_log(*(this->mqtt_client), "Adding water!");
             this->adding_water = true;

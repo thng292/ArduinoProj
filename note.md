@@ -11,7 +11,7 @@
 
 - Cập nhật các trạng thái sensor
 - direction: client -> server
-- topic: device_state
+- topic: sensor_state
 - payload:
 
 ```json
