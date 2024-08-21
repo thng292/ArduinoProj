@@ -2,6 +2,8 @@
 
 #include <WiFiUdp.h>
 
+#include "mqtt_action.hpp"
+
 auto AA::updateSensorsState(
     DHT& dht,
     HX711& food_scale,
@@ -52,6 +54,15 @@ auto AA::mqtt_reconnect(PubSubClient& mqtt_client, std::string_view DEV_ID)
         Serial.println("Connecting to MQTT broker");
         if (mqtt_client.connect(DEV_ID.data())) {
             Serial.println("Connected to MQTT broker");
+            Serial.println("Resubcribing");
+            const auto* list =
+                (const std::string_view*)&AA::MQTT_ACTION::TOPICS;
+            for (uint8_t i = 0; i < AA::MQTT_ACTION::NUM_SUBSCRIBE_TOPICS;
+                 i++) {
+                Serial.printf("Subcribing to %s", list[i].data());
+                Serial.println();
+                mqtt_client.subscribe(list[i].data());
+            }
         } else {
             Serial.println("Connect to MQTT broker failed. Retrying...");
             delay(5000);

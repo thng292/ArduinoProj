@@ -88,17 +88,16 @@ auto setup() -> void
         AA::MQTT_ACTION::add_video(mqtt_client, camera.recordAndUpload());
     };
 
-    const auto *list = (const std::string_view*)&AA::MQTT_ACTION::TOPICS;
-    for (uint8_t i = 0; i < AA::MQTT_ACTION::NUM_SUBSCRIBE_TOPICS; i++) {
-        mqtt_client.subscribe(list[i].data());
-    }
     mqtt_client.setCallback(  //
         [](char* topic, uint8_t* data, unsigned int length) {
             Serial.println("-----------------");
             Serial.printf("Topic: %s", topic);
             Serial.println();
             data[length] = 0;
-            Serial.printf("Data: %s", data);
+            Serial.print("Data: ");
+            for (int i = 0; i < length; i++) {
+                Serial.print(data[i]);
+            }
             Serial.println();
             Serial.println("-----------------");
             const auto& Topic = AA::MQTT_ACTION::TOPICS;
@@ -120,7 +119,14 @@ auto setup() -> void
     );
 
     AA::MQTT_ACTION::push_log(mqtt_client, LOG_PREFIX "Everything is ok");
+    AA::MQTT_ACTION::dev_info(mqtt_client);
+    AA::MQTT_ACTION::sensor_state(
+        mqtt_client,
+        AA::updateSensorsState(dht, food_scale, water_scale, water_level_sens)
+    );
 }
+
+unsigned long last = millis();
 
 auto loop() -> void
 {
@@ -128,7 +134,7 @@ auto loop() -> void
     if (not mqtt_client.loop()) {
         Serial.println(LOG_PREFIX "mqtt_client.loop() return false");
     }
-    ntp_client.update();
+    // ntp_client.update();
     camera.loop();
     Speaker.loop();
     feed_scheduler.loop();
@@ -141,7 +147,7 @@ auto loop() -> void
         eat_time += now - last_eat_time;
         last_eat_time = now;
     }
-    if (ntp_client.getSeconds() == 0) {
+    if (ntp_client.getSeconds() % 30 == 0) {
         AA::MQTT_ACTION::sensor_state(
             mqtt_client,
             AA::updateSensorsState(
@@ -149,4 +155,8 @@ auto loop() -> void
             )
         );
     }
+    auto now = millis();
+    Serial.printf("Done loop %lu", now - last);
+    Serial.println();
+    last = now;
 }

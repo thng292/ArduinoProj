@@ -9,6 +9,7 @@
 auto AA::FeedScheduler::begin() -> void
 {
     this->last_water_scale_value = this->water_scale->get_units();
+    MQTT_ACTION::request_feed_time(*this->mqtt_client);
 }
 
 auto AA::FeedScheduler::checkAndAddWater() -> void
@@ -39,7 +40,7 @@ auto AA::FeedScheduler::checkAndAddWater() -> void
     } else {
         if (water_level <= lo_threshold) {
             if (new_water_scale_value == 0) {
-                MQTT_ACTION::push_log(*(this->mqtt_client), "No water left!");
+                return;
             }
             this->water_servo->write(30);
             MQTT_ACTION::push_log(*(this->mqtt_client), "Adding water!");
@@ -196,13 +197,14 @@ auto AA::FeedScheduler::parseAndWriteSchedule(const std::string& data) -> void
     }
 
     this->schedules = tmp_schedues;
-    // Serial.println(tmp_schedues.size());
-    // for (const auto& sched : tmp_schedues) {
-    //     Serial.println(sched.time.hour);
-    //     Serial.println(sched.time.minute);
-    //     Serial.println(sched.amount_gram);
-    //     Serial.println(sched.duration_m);
-    //     Serial.println(sched.audio_url.c_str());
-    //     Serial.println();
-    // }
+    Serial.printf("Wrote %lu schedule", tmp_schedues.size());
+    Serial.println();
+    for (const auto& sched : tmp_schedues) {
+        Serial.println(sched.time.hour);
+        Serial.println(sched.time.minute);
+        Serial.println(sched.amount_gram);
+        Serial.println(sched.duration_m);
+        Serial.println(sched.audio_url.c_str());
+        Serial.println();
+    }
 }

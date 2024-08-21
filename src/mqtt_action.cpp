@@ -17,7 +17,7 @@ auto AA::MQTT_ACTION::sensor_state(
     auto len = snprintf(
         buffer.get(),
         buffer_size,
-        "{\"temp\": %f, \"humid\": %f, \"food\": %f, \"water\": %f, }",
+        "{\"temp\": %f, \"humid\": %f, \"food\": %f, \"water\": %f }",
         state.temp,
         state.humid,
         state.food,

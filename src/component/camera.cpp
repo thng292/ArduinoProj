@@ -1,9 +1,9 @@
 #include "camera.hpp"
 
+#include <Esp.h>
+
 #include <array>
 #include <string_view>
-
-#include <Esp.h>
 
 #define IMG_PRE "https://unsplash.com/photos/"
 #define IMG_POST "/download?force=true&w=640"
@@ -11,10 +11,28 @@
 #define VIDEO_PRE \
     "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/"
 
+auto getDistance(uint8_t trig_pin, uint8_t echo_pin) -> float
+{
+    digitalWrite(trig_pin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trig_pin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trig_pin, LOW);
+    auto duration = pulseIn(echo_pin, HIGH);
+    auto distanceCm = duration * 0.034f / 2;
+    return distanceCm;
+}
+
 auto AA::Camera::begin() -> void
 {
     pinMode(this->pins.echo, INPUT);
     pinMode(this->pins.trig, OUTPUT);
+    this->cameraThread = std::thread([this]() {
+        while (true) {
+            this->last_distance = getDistance(this->pins.trig, this->pins.echo);
+            delay(100);
+        }
+    });
 }
 
 auto AA::Camera::captureAndUpload() -> std::string
@@ -47,31 +65,11 @@ auto AA::Camera::recordAndUpload() -> std::string
 
 auto AA::Camera::isPetIn() const noexcept -> bool
 {
-    return this->last_distance < 50.0f;
+    if (this->last_distance < 50.0f) {
+        Serial.println("Pet in");
+        return true;
+    }
+    return false;
 }
 
-auto AA::Camera::loop() -> void
-{
-    auto time = millis();
-    switch (this->current_stage) {
-        case Stage::Reset:
-            if (time - this->last_time_ms >= 2) {
-                this->current_stage = Stage::Echo;
-                last_time_ms = time;
-            } else {
-                digitalWrite(this->pins.trig, LOW);
-            }
-            break;
-        case Stage::Echo:
-            if (time - this->last_time_ms >= 10) {
-                digitalWrite(this->pins.trig, LOW);
-                auto duration_ms = pulseIn(this->pins.echo, HIGH);
-                this->last_distance = duration_ms * 0.034f / 2.0f;
-                this->last_time_ms = millis();
-                this->current_stage = Stage::Reset;
-            } else {
-                digitalWrite(this->pins.trig, HIGH);
-            }
-            break;
-    }
-}
+auto AA::Camera::loop() -> void {}
