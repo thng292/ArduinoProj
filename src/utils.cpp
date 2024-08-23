@@ -14,8 +14,8 @@ auto AA::updateSensorsState(
     return SensorsState{
         .temp = dht.readTemperature(),
         .humid = dht.readHumidity(),
-        .food = food_scale.get_units(),
-        .water = water_scale.get_units(),
+        .food = food_scale.get_units() / 2100.0f * 5000,
+        .water = water_scale.get_units() / 2100.0f * 5000,
         .bowl_water_level = water_level_sens.read(),
     };
 }

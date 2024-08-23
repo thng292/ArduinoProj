@@ -6,16 +6,29 @@
 #include "mqtt_action.hpp"
 #include "speaker.hpp"
 
+constexpr float weight_constant = 2100.0 * 5000;
+
+auto AA::FeedScheduler::getWaterWeight() -> float
+{
+    return this->water_scale->get_units() / 2100.0 * 5000;
+}
+
+auto AA::FeedScheduler::getFoodWeight() -> float
+{
+    return this->food_scale->get_units() / 2100.0 * 5000;
+}
+
 auto AA::FeedScheduler::begin() -> void
 {
-    this->last_water_scale_value = this->water_scale->get_units();
+    this->last_water_scale_value = this->getWaterWeight();
+    this->last_food_scale_value = this->getFoodWeight();
     MQTT_ACTION::request_feed_time(*this->mqtt_client);
 }
 
 auto AA::FeedScheduler::checkAndAddWater() -> void
 {
     auto water_level = this->water_level_sensor->read();
-    auto new_water_scale_value = this->water_scale->get_units();
+    auto new_water_scale_value = this->getWaterWeight();
     if (this->adding_water) {
         if (water_level >= hi_threshold) {
             this->water_servo->write(90);
@@ -46,7 +59,7 @@ auto AA::FeedScheduler::checkAndAddWater() -> void
             MQTT_ACTION::push_log(*(this->mqtt_client), "Adding water!");
             this->adding_water = true;
         } else {
-            this->last_water_scale_value = this->water_scale->get_units();
+            this->last_water_scale_value = this->getWaterWeight();
         }
     }
 }
@@ -54,8 +67,11 @@ auto AA::FeedScheduler::checkAndAddWater() -> void
 auto AA::FeedScheduler::checkAndAddFood() -> void
 {
     if (this->adding_food) {
-        auto food_weight = this->food_scale->get_units();
-        if (last_food_scale_value - food_weight >= amount_to_feed_kg) {
+        auto food_weight = this->getFoodWeight();
+        Serial.println(last_food_scale_value);
+        Serial.println(food_weight);
+        Serial.println(amount_to_feed_kg * 1000);
+        if (last_food_scale_value - food_weight >= amount_to_feed_kg * 1000) {
             this->food_servo->write(90);
             this->adding_food = false;
             this->amount_to_feed_kg = 0;
@@ -65,7 +81,7 @@ auto AA::FeedScheduler::checkAndAddFood() -> void
             this->food_servo->write(30);
             this->adding_food = true;
         } else {
-            this->last_food_scale_value = this->food_scale->get_units();
+            this->last_food_scale_value = this->getFoodWeight();
         }
     }
 }
@@ -77,8 +93,11 @@ auto AA::FeedScheduler::feed(float amount_kg) -> void
 
 auto AA::FeedScheduler::loop() -> void
 {
+    // Serial.println("In the loop");
     checkAndAddWater();
+    // Serial.println("Done check water");
     checkAndAddFood();
+    // Serial.println("Done check food");
     auto now = Time{
         .hour = this->ntp_client->getHours(),
         .minute = this->ntp_client->getMinutes(),
@@ -90,35 +109,36 @@ auto AA::FeedScheduler::loop() -> void
         endEating.minute = -1;
     }
     constexpr auto kg_to_gram = 1000;
-    if (this->endEating.hour != -1) {
-        for (int i = 0; i < this->schedules.size(); i++) {
-            auto& sched = this->schedules[i];
-            if (sched.time.hour == now.hour and
-                sched.time.minute == now.minute) {
-                if (not this->done_flag[i]) {
-                    this->done_flag[i] = true;
-                    this->feed((float)sched.amount_gram / kg_to_gram);
-                    MQTT_ACTION::push_log(*(this->mqtt_client), "Feeding pet!");
-                    this->onStartEating(now);
-                    auto min =
-                        this->ntp_client->getMinutes() + sched.duration_m;
-                    auto hour = this->ntp_client->getHours() + min / 60;
-                    min = min % 60;
-                    if (this->endEating.hour < hour) {
-                        this->endEating = {
-                            .hour = hour,
-                            .minute = min,
-                        };
-                    } else if (this->endEating.hour == hour) {
-                        this->endEating.minute =
-                            std::max(min, this->endEating.minute);
-                    }
-                    Speaker.play();
+    if (not this->schedules_mutex.try_lock()) {
+        return;
+    }
+    for (int i = 0; i < this->schedules.size(); i++) {
+        auto& sched = this->schedules[i];
+        if (sched.time.hour == now.hour and sched.time.minute == now.minute) {
+            if (not this->done_flag[i]) {
+                this->done_flag[i] = true;
+                this->feed((float)sched.amount_gram / kg_to_gram);
+                MQTT_ACTION::push_log(*(this->mqtt_client), "Feeding pet!");
+                this->onStartEating(now);
+                auto min = now.minute + sched.duration_m;
+                auto hour = now.hour + min / 60;
+                min = min % 60;
+                if (this->endEating.hour < hour) {
+                    this->endEating = {
+                        .hour = hour,
+                        .minute = min,
+                    };
+                } else if (this->endEating.hour == hour) {
+                    this->endEating.minute =
+                        std::max(min, this->endEating.minute);
                 }
+                Speaker.play();
             }
+        } else {
             this->done_flag[i] = false;
         }
     }
+    this->schedules_mutex.unlock();
 }
 
 auto AA::FeedScheduler::shouldBeEating() const noexcept -> bool
@@ -196,15 +216,16 @@ auto AA::FeedScheduler::parseAndWriteSchedule(const std::string& data) -> void
         }
     }
 
-    this->schedules = tmp_schedues;
-    Serial.printf("Wrote %lu schedule", tmp_schedues.size());
-    Serial.println();
-    for (const auto& sched : tmp_schedues) {
-        Serial.println(sched.time.hour);
-        Serial.println(sched.time.minute);
-        Serial.println(sched.amount_gram);
-        Serial.println(sched.duration_m);
-        Serial.println(sched.audio_url.c_str());
-        Serial.println();
+    {
+        std::lock_guard lock(this->schedules_mutex);
+        Serial.println("Writing the schedules");
+        this->schedules = std::move(tmp_schedues);
+        this->done_flag.resize(this->schedules.size(), false);
+        std::fill(this->done_flag.begin(), this->done_flag.end(), false);
     }
+    Serial.printf("Wrote %lu schedule", schedules.size());
+    Serial.println();
+    // for (const auto& sched : this->schedules) {
+    //     Serial.println((uint64_t)&sched);
+    // }
 }

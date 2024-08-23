@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <vector>
+#include <mutex>
 
 #include "water_level_sensor.hpp"
 
@@ -33,6 +34,7 @@ namespace AA {
         PubSubClient* mqtt_client;
 
         std::vector<Schedule> schedules;
+        std::mutex schedules_mutex;
         std::vector<bool> done_flag;
 
         bool adding_water = false;
@@ -47,6 +49,8 @@ namespace AA {
 
         auto checkAndAddWater() -> void;
         auto checkAndAddFood() -> void;
+        auto getWaterWeight() -> float;
+        auto getFoodWeight() -> float;
 
        public:
         // callback: auto cb(float water_added_gram) -> void

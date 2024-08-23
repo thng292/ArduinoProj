@@ -63,13 +63,18 @@ auto setup() -> void
     mqtt_client.setServer(AA::MQTT_BROKER_ADDR.data(), AA::MQTT_BROKER_PORT);
     AA::mqtt_reconnect(mqtt_client, AA::DEV_ID);
     ntp_client.begin();
-    ntp_client.forceUpdate();
+    ntp_client.setTimeOffset(25200);
+    while (not ntp_client.forceUpdate()) {
+        Serial.println("Error setting time. Trying again...");
+    }
 
     dht.begin();
     food_scale.begin(AA::Pin::SCALE[0].DT, AA::Pin::SCALE[0].SCK);
     water_scale.begin(AA::Pin::SCALE[1].DT, AA::Pin::SCALE[1].SCK);
     food_servo.attach(AA::Pin::SERVO[0]);
     water_servo.attach(AA::Pin::SERVO[1]);
+    food_servo.write(90);
+    water_servo.write(90);
 
     butt.begin();
     mic.begin();
@@ -86,6 +91,8 @@ auto setup() -> void
     feed_scheduler.onEndEating = [](auto _) {
         AA::MQTT_ACTION::time_eat(mqtt_client, eat_time);
         AA::MQTT_ACTION::add_video(mqtt_client, camera.recordAndUpload());
+        eat_time = 0;
+        Speaker.stop();
     };
 
     mqtt_client.setCallback(  //
@@ -93,7 +100,7 @@ auto setup() -> void
             Serial.println("-----------------");
             Serial.printf("Topic: %s", topic);
             Serial.println();
-            data[length] = 0;
+            // data[length] = 0;
             Serial.print("Data: ");
             for (int i = 0; i < length; i++) {
                 Serial.print(data[i]);
@@ -124,17 +131,22 @@ auto setup() -> void
         mqtt_client,
         AA::updateSensorsState(dht, food_scale, water_scale, water_level_sens)
     );
+    // Serial.println(ntp_client.getFormattedTime().c_str());
 }
 
 unsigned long last = millis();
+int last_minute = 0;
 
 auto loop() -> void
 {
+    if (auto min = ntp_client.getMinutes(); min != last_minute) {
+        last_minute = min;
+        Serial.println(ntp_client.getFormattedTime().c_str());
+    }
     AA::mqtt_reconnect(mqtt_client, AA::DEV_ID);
     if (not mqtt_client.loop()) {
         Serial.println(LOG_PREFIX "mqtt_client.loop() return false");
     }
-    // ntp_client.update();
     camera.loop();
     Speaker.loop();
     feed_scheduler.loop();

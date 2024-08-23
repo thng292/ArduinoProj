@@ -70,7 +70,7 @@
     [ "chip1:VCC", "bb1:tp.42", "red", [ "h0" ] ],
     [ "bz1:1", "bb1:tn.36", "green", [ "v0" ] ],
     [ "bz1:2", "bb1:46t.c", "green", [ "v0" ] ],
-    [ "bb1:46t.d", "esp:D14", "green", [ "h384", "v-182.5" ] ],
+    [ "bb1:46t.d", "esp:D33", "green", [ "h384", "v-182.5" ] ],
     [ "mic:1", "bb1:tn.31", "green", [ "v0" ] ],
     [ "mic:2", "bb1:40t.d", "green", [ "v0" ] ],
     [ "bb1:40t.e", "esp:D27", "green", [ "h432", "v-201.3" ] ],

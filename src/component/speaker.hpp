@@ -16,6 +16,8 @@ namespace AA {
         auto loop() -> void;
 
         auto play() -> void;
+
+        auto stop() -> void;
     };
 }  // namespace AA
 

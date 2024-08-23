@@ -12,7 +12,7 @@ namespace AA::Pin {
     constexpr uint8_t BUTTON = 32;
     constexpr uint8_t DHT22 = 13;
     constexpr uint8_t MIC = 27;
-    constexpr uint8_t BUZZER = 14;
+    constexpr uint8_t BUZZER = 33;
 
     constexpr std::array<uint8_t, 2> SERVO = {2, 15};
 

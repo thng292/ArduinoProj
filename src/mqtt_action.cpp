@@ -80,7 +80,7 @@ auto AA::MQTT_ACTION::time_eat(
     PubSubClient& mqtt_client, unsigned long time_eat_ms
 ) -> void
 {
-    auto len = snprintf(buffer.get(), buffer_size, "%lu", time_eat_ms);
+    auto len = snprintf(buffer.get(), buffer_size, "%lu", time_eat_ms / 1000);
     Serial.println("Publishing time_eat");
     mqtt_client.publish(TOPICS.time_eat.data(), buffer.get());
     Serial.println("Done Publishing time_eat");

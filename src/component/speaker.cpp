@@ -154,7 +154,7 @@ auto AA::SpeakerClass::playNote() -> void
 
     // we only play the note for 90% of the duration, leaving 10% as a pause
     this->last_time = millis();
-    tone(this->pin, melody[this->idx], this->duration * 0.9);
+    // tone(this->pin, melody[this->idx], this->duration * 0.9);
     this->idx += 2;
 }
 
@@ -162,6 +162,11 @@ auto AA::SpeakerClass::play() -> void
 {
     is_playing = true;
     playNote();
+}
+
+auto AA::SpeakerClass::stop() -> void
+{
+    is_playing = false;
 }
 
 auto AA::SpeakerClass::loop() -> void

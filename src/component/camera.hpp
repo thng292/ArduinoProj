@@ -4,7 +4,6 @@
 
 #include <cmath>
 #include <string>
-#include <atomic>
 #include <thread>
 
 #include "pin_map.hpp"
