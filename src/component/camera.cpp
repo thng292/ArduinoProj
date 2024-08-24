@@ -27,7 +27,7 @@ auto AA::Camera::begin() -> void
 {
     pinMode(this->pins.echo, INPUT);
     pinMode(this->pins.trig, OUTPUT);
-    this->cameraThread = std::thread([this]() {
+    this->camera_thread = std::thread([this]() {
         while (true) {
             this->last_distance = getDistance(this->pins.trig, this->pins.echo);
             delay(100);
@@ -35,22 +35,33 @@ auto AA::Camera::begin() -> void
     });
 }
 
-auto AA::Camera::captureAndUpload() -> std::string
+auto AA::Camera::startRecord() -> void
 {
-    constexpr auto images = std::array<std::string_view, 6>{
-        IMG_PRE "IFxjDdqK_0U" IMG_POST,
-        IMG_PRE "9UUoGaaHtNE" IMG_POST,
-        IMG_PRE "w2DsS-ZAP4U" IMG_POST,
-        IMG_PRE "gKXKBY-C-Dk" IMG_POST,
-        IMG_PRE "cWOzOnSoh6Q" IMG_POST,
-        IMG_PRE "LcAZcVWsCIo" IMG_POST,
-    };
-    cursor = cursor % images.size();
-    return std::string(images[cursor++]);
+    this->is_recording = true;
 }
 
-auto AA::Camera::recordAndUpload() -> std::string
+auto AA::Camera::isRecording() -> boolean
 {
+    return this->is_recording;
+}
+
+// auto AA::Camera::captureAndUpload() -> std::string
+// {
+//     constexpr auto images = std::array<std::string_view, 6>{
+//         IMG_PRE "IFxjDdqK_0U" IMG_POST,
+//         IMG_PRE "9UUoGaaHtNE" IMG_POST,
+//         IMG_PRE "w2DsS-ZAP4U" IMG_POST,
+//         IMG_PRE "gKXKBY-C-Dk" IMG_POST,
+//         IMG_PRE "cWOzOnSoh6Q" IMG_POST,
+//         IMG_PRE "LcAZcVWsCIo" IMG_POST,
+//     };
+//     cursor = cursor % images.size();
+//     return std::string(images[cursor++]);
+// }
+
+auto AA::Camera::stopRecordAndUpload() -> std::string
+{
+    this->is_recording = false;
     constexpr auto videos = std::array<std::string_view, 6>{
         VIDEO_PRE "BigBuckBunny.mp4",
         VIDEO_PRE "ElephantsDream.mp4",
@@ -65,11 +76,7 @@ auto AA::Camera::recordAndUpload() -> std::string
 
 auto AA::Camera::isPetIn() const noexcept -> bool
 {
-    if (this->last_distance < 50.0f) {
-        Serial.println("Pet in");
-        return true;
-    }
-    return false;
+    return this->last_distance < 50.0f;
 }
 
 auto AA::Camera::loop() -> void {}

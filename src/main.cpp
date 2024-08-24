@@ -90,7 +90,6 @@ auto setup() -> void
     feed_scheduler.onStartEating = [](auto _) {};
     feed_scheduler.onEndEating = [](auto _) {
         AA::MQTT_ACTION::time_eat(mqtt_client, eat_time);
-        AA::MQTT_ACTION::add_video(mqtt_client, camera.recordAndUpload());
         eat_time = 0;
         Speaker.stop();
     };
@@ -158,6 +157,19 @@ auto loop() -> void
         auto now = millis();
         eat_time += now - last_eat_time;
         last_eat_time = now;
+    }
+    if (camera.isPetIn()) {
+        if (not camera.isRecording()) {
+            camera.startRecord();
+            Serial.println("Pet is in!");
+        }
+    } else {
+        if (camera.isRecording()) {
+            AA::MQTT_ACTION::add_video(
+                mqtt_client, camera.stopRecordAndUpload()
+            );
+            Serial.println("Pet is out!");
+        }
     }
     if (ntp_client.getSeconds() % 30 == 0) {
         AA::MQTT_ACTION::sensor_state(

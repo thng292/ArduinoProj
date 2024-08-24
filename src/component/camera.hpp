@@ -16,16 +16,19 @@ namespace AA {
         Pin::DISTANCE_SENS_PINS pins;
         float last_distance = infinityf();
         unsigned long last_time_ms = 0;
-        std::thread cameraThread;
+        std::thread camera_thread;
+        boolean is_recording = false;
 
        public:
         Camera(Pin::DISTANCE_SENS_PINS pins) : pins(pins) {}
 
         auto begin() -> void;
 
-        auto captureAndUpload() -> std::string;
+        auto isRecording() -> boolean;
 
-        auto recordAndUpload() -> std::string;
+        auto startRecord() -> void;
+
+        auto stopRecordAndUpload() -> std::string;
 
         auto loop() -> void;
 
