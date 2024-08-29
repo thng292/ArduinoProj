@@ -22,7 +22,7 @@ namespace AA {
     using namespace std::string_view_literals;
     constexpr auto WIFI_SSID = "Wokwi-GUEST"sv;
     constexpr auto WIFI_PSWD = ""sv;
-    constexpr auto MQTT_BROKER_ADDR = "192.168.1.9"sv;
+    constexpr auto MQTT_BROKER_ADDR = "10.126.1.69"sv;
     constexpr uint16_t MQTT_BROKER_PORT = 1883;
     constexpr auto DEV_ID = "idkwhattosethere"sv;
 };  // namespace AA
